@@ -115,7 +115,14 @@ public class MazePanel extends Component {
     }
     
     boolean removePath(Path path) {
-        return paths.remove(path);
+        boolean removed = paths.remove(path);
+        repaint();
+        return removed;
+    }
+    
+    void clearPaths() {
+        paths.clear();
+        repaint();
     }
     
     void message(String format, Object... args) {

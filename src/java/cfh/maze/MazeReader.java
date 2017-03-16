@@ -100,6 +100,7 @@ public class MazeReader {
                 emptycount,
                 nodes.size()
                 );
+        mazePanel.clearPaths();
         
         return new Maze(nodes.values(), entry, exit);
     }
