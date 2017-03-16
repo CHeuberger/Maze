@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,8 +23,9 @@ import javax.swing.SwingUtilities;
 
 public class GUI {
     
-    private static final List<Class<? extends Solver>> SOLVERS = Collections.unmodifiableList(Arrays.asList(
-            LeftTurnSolver.class
+    private static final List<Solver> SOLVERS = Collections.unmodifiableList(Arrays.asList(
+            new TurnSolver(false),
+            new TurnSolver(true)
             ));
 
     public static void main(String[] args) {
@@ -61,15 +61,8 @@ public class GUI {
         file.add(quit);
         
         JMenu solve = new JMenu("Solve");
-        for (Class<? extends Solver> solverClass : SOLVERS) {
-            Constructor<? extends Solver> constructor;
-            Solver solver;
-            try {
-                constructor = solverClass.getDeclaredConstructor(MazePanel.class);
-                solver = constructor.newInstance(mazePanel);
-            } catch (ReflectiveOperationException ex) {
-                throw new RuntimeException(ex);
-            }
+        for (Solver solver : SOLVERS) {
+            solver.mazePanel(mazePanel);
             JMenuItem item = new JMenuItem(solver.name);
             item.setToolTipText(solver.tooltip);
             item.addActionListener(ev -> solver.solve(maze));

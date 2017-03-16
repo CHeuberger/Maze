@@ -5,18 +5,28 @@ import static java.util.Objects.*;
 
 public abstract class Solver {
 
-    final MazePanel mazePanel;
+    private MazePanel mazePanel;
     final String name;
     final String tooltip;
     
     
-    protected Solver(MazePanel mazePanel, String name, String tooltip) {
-        this.mazePanel = requireNonNull(mazePanel);
+    protected Solver(String name, String tooltip) {
         this.name = requireNonNull(name);
         this.tooltip = requireNonNull(tooltip);
     }
     
+    void mazePanel(MazePanel mazePanel) {
+        assert this.mazePanel == null;
+        this.mazePanel = requireNonNull(mazePanel);
+    }
+    
+    protected MazePanel mazePanel() {
+        return mazePanel;
+    }
+    
     final boolean solve(Maze maze) {
+        assert mazePanel != null;
+        
         boolean solved;
         if (maze == null) {
             mazePanel.message("first load a maze");
