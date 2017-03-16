@@ -7,6 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.imageio.ImageIO;
@@ -17,7 +21,12 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
+
 public class GUI {
+    
+    private static final List<Class<? extends Solver>> SOLVERS = Collections.unmodifiableList(Arrays.asList(
+            LeftTurnSolver.class
+            ));
 
     public static void main(String[] args) {
         new GUI();
@@ -30,13 +39,16 @@ public class GUI {
     
     private JFrame frame;
     private MazePanel mazePanel;
-    
+    private Maze maze = null;
+
     
     private GUI() {
         SwingUtilities.invokeLater(this::initGUI);
     }
     
     private void initGUI() {
+        mazePanel = new MazePanel();
+        
         JMenuItem open = new JMenuItem("Open");
         open.addActionListener(this::doOpen);
         
@@ -48,10 +60,25 @@ public class GUI {
         file.addSeparator();
         file.add(quit);
         
+        JMenu solve = new JMenu("Solve");
+        for (Class<? extends Solver> solverClass : SOLVERS) {
+            Constructor<? extends Solver> constructor;
+            Solver solver;
+            try {
+                constructor = solverClass.getDeclaredConstructor(MazePanel.class);
+                solver = constructor.newInstance(mazePanel);
+            } catch (ReflectiveOperationException ex) {
+                throw new RuntimeException(ex);
+            }
+            JMenuItem item = new JMenuItem(solver.name);
+            item.setToolTipText(solver.tooltip);
+            item.addActionListener(ev -> solver.solve(maze));
+            solve.add(item);
+        }
+        
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(file);
-        
-        mazePanel = new MazePanel();
+        menuBar.add(solve);
         
         frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -85,15 +112,16 @@ public class GUI {
         }
         
         mazePanel.setImage(image);
+        MazeReader reader = new MazeReader(mazePanel);
         try {
-            new MazeReader(mazePanel);
+            maze = reader.createMaze(image);
         } catch (MazeException ex) {
             showMessageDialog(frame, ex.getMessage(), ex.getClass().getName(), ERROR_MESSAGE);
         }
     }
     
     private void doQuit(ActionEvent ev) {
-        // TODO
+        // TODO confirm
         frame.dispose();
     }
 }
