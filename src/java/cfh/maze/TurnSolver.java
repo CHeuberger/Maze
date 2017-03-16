@@ -7,10 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class LeftTurnSolver extends Solver {
+public class TurnSolver extends Solver {
+    
+    private final boolean right;
 
-    LeftTurnSolver(MazePanel panel) {
-        super(panel, "Left Turn", "Solves the maze by going through it and always turning left");
+    TurnSolver(boolean right) {
+        super(right ? "Right Turn" : "Left Turn", 
+                "Solves the maze by going through it and always turning " + (right ? "right" : "left"));
+        this.right = right;
     }
 
     @Override
@@ -18,18 +22,19 @@ public class LeftTurnSolver extends Solver {
         List<Node> solution = new ArrayList<>();
         solution.add(maze.entry);
         Path path = Path.create(YELLOW, maze.entry);
-        mazePanel.addPath(path);
+        mazePanel().clearPaths();
+        mazePanel().addPath(path);
         Direction dir = SOUTH;
         Node current = maze.entry.neighbour(dir);
         solution.add(current);
         path.addPoint(current.x, current.y);
         while (!current.equals(maze.exit) && !current.equals(maze.exit)) {
-            if (current.neighbour(dir.left()) != null) {
-                dir = dir.left();
+            if (current.neighbour(right ? dir.right() : dir.left()) != null) {
+                dir = right ? dir.right() : dir.left();
             } else if (current.neighbour(dir) != null) {
                 // go straight
-            } else if (current.neighbour(dir.right()) != null) {
-                dir = dir.right();
+            } else if (current.neighbour(right ? dir.left() : dir.right()) != null) {
+                dir = right ? dir.left() : dir.right();
             } else if (current.neighbour(dir.back()) != null) {
                 dir = dir.back();
             } else {
@@ -37,10 +42,17 @@ public class LeftTurnSolver extends Solver {
                 break;
             }
             current = current.neighbour(dir);
-            solution.add(current);
+            int index = solution.indexOf(current);
+            if (index == -1) {
+                solution.add(current);
+            } else {
+                solution.subList(index+1, solution.size()).clear();
+            }
             path.addPoint(current.x, current.y);
         }
         
+        path = Path.create(BLUE, solution.toArray(new Node[0]));
+        mazePanel().addPath(path);
         return current.equals(maze.exit);
     }
 }
