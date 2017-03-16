@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.JOptionPane;
+
 
 @SuppressWarnings("serial")
 public class MazePanel extends Component {
@@ -114,6 +116,11 @@ public class MazePanel extends Component {
     
     boolean removePath(Path path) {
         return paths.remove(path);
+    }
+    
+    void message(String format, Object... args) {
+        JOptionPane.showMessageDialog(this, String.format(format, args));
+
     }
 
     private void resetZoom() {

@@ -1,20 +1,28 @@
 package cfh.maze;
 
-import java.util.Arrays;
+import static java.util.Objects.*;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class Maze {
     
-    public static final boolean WALL = false;
-    public static final boolean PATH = true;
-    
-
-    
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//    final int width;
-//    final int height;
-//    final Node entry;
-//    final Node exit;
+    final Map<Node, Node> nodes;
+    final Node entry;
+    final Node exit;
     
     
+    Maze(Collection<Node> nodes, Node entry, Node exit) {
+        Map<Node, Node> map = new HashMap<>();
+        for (Node node : nodes) {
+            Node old = map.put(node, node);
+            assert old == null : old;
+        }
+        this.nodes = Collections.unmodifiableMap(map);
+        this.entry = requireNonNull(entry);
+        this.exit = requireNonNull(exit);
+    }
 }
