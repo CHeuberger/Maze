@@ -5,8 +5,12 @@ import static cfh.maze.Direction.*;
 import static cfh.maze.Maze.*;
 
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.swing.JOptionPane;
 
 
 public class MazeReader {
@@ -29,9 +33,13 @@ public class MazeReader {
             throw new MazeException("image to small: %d*%d", width, height);
         data = new boolean[height][width];
         
+        int emptycount = 0;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x ++) {
-                data[y][x] = (image.getRGB(x, y) & 0x00FFFFFF) != 0;
+                if ((image.getRGB(x, y) & 0x00FFFFFF) != 0) {
+                    data[y][x] = PATH;
+                    emptycount += 1;
+                }
             }
         }
         
@@ -45,7 +53,6 @@ public class MazeReader {
                 throw new MazeException("missing wall at (%d,%d)", y, width-1);
         }
         
-        // TODO {TEST}
         mazePanel.addPath(Path.create(BLUE, entry));
         mazePanel.addPath(Path.create(GREEN, exit));
         
@@ -61,7 +68,7 @@ public class MazeReader {
                        ) {
                         Node node = new Node(x, y);
                         nodes.put(node, node);
-                        mazePanel.addPath(Path.create(YELLOW, node));  // TODO {TEST}
+                        mazePanel.addPath(Path.create(YELLOW, node));
                     }
                 }
             }
@@ -75,15 +82,29 @@ public class MazeReader {
             if (next != null) {
                 node.setNeighbour(SOUTH, next);
                 next.setNeighbour(SOUTH.back(), node);
-                mazePanel.addPath(Path.create(CYAN, node, next));  // TODO {TEST}
+                mazePanel.addPath(Path.create(CYAN, node, next));
             }
             next = findNextNode(node, EAST);
             if (next != null) {
                 node.setNeighbour(EAST, next);
                 next.setNeighbour(EAST.back(), node);
-                mazePanel.addPath(Path.create(CYAN, node, next));  // TODO {TEST}
+                mazePanel.addPath(Path.create(CYAN, node, next));
             }
         }
+        
+        String message = String.format(
+                "Size: %d x %d\n"
+                + "Entry: %s\n"
+                + "Exit: %s\n"
+                + "Empty: %d\n"
+                + "Nodes: %d",
+                width, height,
+                entry,
+                exit,
+                emptycount,
+                nodes.size()
+                );
+        JOptionPane.showMessageDialog(mazePanel, message);
     }
     
     private Node findGate(String name, int row) throws MazeException {
