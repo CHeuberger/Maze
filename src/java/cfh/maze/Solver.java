@@ -25,7 +25,7 @@ public abstract class Solver {
             long time = System.nanoTime();
             solved = solve0(maze);
             time = System.nanoTime() - time;
-            mazePanel.message("%s in %.1f ms", solved ? "not solved" : "solved", time / 1e6);
+            mazePanel.message("%s in %.1f ms", solved ? "solved" : "not solved", time / 1e6);
         }
         return solved;
     }

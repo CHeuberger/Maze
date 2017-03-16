@@ -17,7 +17,7 @@ public class Node {
         neighbours[dir.ordinal()] = node;
     }
     
-    public Node getNeighbour(Direction dir) {
+    public Node neighbour(Direction dir) {
         return neighbours[dir.ordinal()];
     }
     
