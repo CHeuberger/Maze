@@ -6,6 +6,7 @@ import static cfh.maze.Direction.*;
 
 import java.awt.BorderLayout;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -21,11 +22,16 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import cfh.Dot;
@@ -136,12 +142,14 @@ public class GUI {
     private void doTreeGraph(ActionEvent ev) {
         StringBuilder dot = new StringBuilder();
         dot.append("graph {\n");
+        dot.append("  ").append(fmtNode(maze.entry)).append(" [ shape=invhouse ]\n");
+        dot.append("  ").append(fmtNode(maze.exit)).append(" [ shape=house ]\n");
         for (Node node : maze.nodes.values()) {
             if (node.neighbour(EAST) != null) {
-                dot.append("  ").append(fmtNode(node)).append(" -- ").append(fmtNode(node.neighbour(EAST))).append(";\n");
+                dot.append("  ").append(fmtNode(node)).append(" -- ").append(fmtNode(node.neighbour(EAST))).append("\n");
             }
             if (node.neighbour(SOUTH) != null) {
-                dot.append("  ").append(fmtNode(node)).append(" -- ").append(fmtNode(node.neighbour(SOUTH))).append(";\n");
+                dot.append("  ").append(fmtNode(node)).append(" -- ").append(fmtNode(node.neighbour(SOUTH))).append("\n");
             }
         }
         dot.append("}\n");
@@ -154,8 +162,13 @@ public class GUI {
             java.nio.file.Path dotPath = svgPath.resolveSibling(filename.substring(0, filename.length()-4) + ".dot");
             Files.write(dotPath, bytes);
             System.out.println(dotPath);
-            Dot.dotToSvg(in, Files.newOutputStream(svgPath));
-            Desktop.getDesktop().browse(svgPath.toUri());
+            BufferedImage image = Dot.toImage(in, "png");
+            JLabel label = new JLabel(new ImageIcon(image));
+            JDialog dialog = new JDialog(frame, true);
+            dialog.add(new JScrollPane(label));
+            dialog.setSize(frame.getSize());
+            dialog.setLocationRelativeTo(frame);
+            dialog.setVisible(true);
         } catch (Throwable ex) {
             System.err.printf("==========  DOT  ==========\n"
                     + "%s\n"
