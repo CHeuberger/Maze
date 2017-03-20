@@ -15,6 +15,7 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,7 +164,24 @@ public class MazePanel extends Component {
                 if (zoom > 2) {
                     gg.setStroke(new BasicStroke(2 / (float) zoom));
                 }
-                paths.stream().forEach(path -> path.paint(gg));
+                for (Path path : paths) {
+                    List<Point> points = path.points();
+                    if (!points.isEmpty()) {
+                        gg.setColor(path.getColor());
+                        if (points.size() == 1) {
+                            Point point = points.get(0);
+                            gg.fillRect(point.x, point.y, 1, 1);
+                        } else {
+                            Point last = null;
+                            for (Point point : points) {
+                                if (last != null) {
+                                    gg.draw(new Line2D.Double(last.x+0.5, last.y+0.5, point.x+0.5, point.y+0.5));
+                                }
+                                last = point;
+                            }
+                        }
+                    }
+               }
             }
         } finally {
             gg.dispose();
