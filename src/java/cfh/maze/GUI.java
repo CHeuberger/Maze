@@ -5,8 +5,7 @@ import static javax.swing.JOptionPane.*;
 import static cfh.maze.Direction.*;
 
 import java.awt.BorderLayout;
-import java.awt.Desktop;
-import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -15,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +28,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
@@ -56,6 +53,7 @@ public class GUI {
     private JFrame frame;
     private MazePanel mazePanel;
     private Maze maze = null;
+    private Path path = null;
 
     private String name = null;
     
@@ -82,7 +80,7 @@ public class GUI {
             solver.mazePanel(mazePanel);
             JMenuItem item = new JMenuItem(solver.name);
             item.setToolTipText(solver.tooltip);
-            item.addActionListener(ev -> solver.solve(maze));
+            item.addActionListener(ev -> doSolve(solver, ev));
             solve.add(item);
         }
         
@@ -105,7 +103,7 @@ public class GUI {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
-    
+
     private void doOpen(ActionEvent ev) {
         String dir = prefs.get(PREF_DIR, ".");
         JFileChooser chooser = new JFileChooser(dir);
@@ -133,23 +131,55 @@ public class GUI {
         MazeReader reader = new MazeReader(mazePanel);
         try {
             maze = reader.createMaze(image);
+            path = null;
         } catch (MazeException ex) {
             showException(ex);
             return;
+        }
+    }
+
+    private void doSolve(Solver solver, ActionEvent ev) {
+        long time = System.nanoTime();
+        path = solver.solve(maze);
+        time = System.nanoTime() - time;
+        if (path != null) {
+            double dist = 0;
+            Point last = null;
+            for (Point point : path.points()) {
+                if (last != null) {
+                    dist += point.distance(last);
+                }
+                last = point;
+            }
+            mazePanel.message("solved in %.1f ms, distance: %.0f ", time / 1e6, dist);
+        } else {
+            mazePanel.message("not solved in %.1f ms", time / 1e6);
         }
     }
     
     private void doTreeGraph(ActionEvent ev) {
         StringBuilder dot = new StringBuilder();
         dot.append("graph {\n");
-        dot.append("  ").append(fmtNode(maze.entry)).append(" [ shape=invhouse ]\n");
-        dot.append("  ").append(fmtNode(maze.exit)).append(" [ shape=house ]\n");
+        dot.append("  ").append(fmtNode(maze.entry)).append(" [ shape=invhouse ];\n");
+        dot.append("  ").append(fmtNode(maze.exit)).append(" [ shape=house ];\n");
         for (Node node : maze.nodes.values()) {
-            if (node.neighbour(EAST) != null) {
-                dot.append("  ").append(fmtNode(node)).append(" -- ").append(fmtNode(node.neighbour(EAST))).append("\n");
-            }
-            if (node.neighbour(SOUTH) != null) {
-                dot.append("  ").append(fmtNode(node)).append(" -- ").append(fmtNode(node.neighbour(SOUTH))).append("\n");
+            for (Direction dir : Arrays.asList(EAST, SOUTH)) {
+                Node next = node.neighbour(dir);
+                if (next != null) {
+                    dot.append("  ").append(fmtNode(node)).append(" -- ").append(fmtNode(next));
+                    if (path != null) {
+                        boolean found = false;
+                        for (Point point : path.points()) {
+                            if ((point.x == node.x && point.y == node.y) || (point.x == next.x && point.y == next.y)) {
+                                if (found) {  // second time
+                                    dot.append(" [style=bold,color=red]");
+                                }
+                                found = ! found;
+                            }
+                        }
+                    }
+                    dot.append(";\n");
+                }
             }
         }
         dot.append("}\n");
@@ -165,6 +195,8 @@ public class GUI {
             BufferedImage image = Dot.toImage(in, "png");
             JLabel label = new JLabel(new ImageIcon(image));
             JDialog dialog = new JDialog(frame, true);
+            dialog.setResizable(true);
+            dialog.setUndecorated(false);
             dialog.add(new JScrollPane(label));
             dialog.setSize(frame.getSize());
             dialog.setLocationRelativeTo(frame);
