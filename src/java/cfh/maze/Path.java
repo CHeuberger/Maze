@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Path {
     
-    static Path create(Color color, Node... nodes) {
+    public static Path create(Color color, Node... nodes) {
         Path path = new Path(requireNonNull(color));
         for (Node node : nodes) {
             path.add(node.x, node.y);
@@ -33,27 +33,27 @@ public class Path {
         add(x, y);
     }
     
-    Color getColor() {
+    public Color getColor() {
         return color;
     }
     
-    void add(Point point) {
+    public void add(Point point) {
         points.addLast(new Point(point));
     }
     
-    void add(int x, int y) {
+    public void add(int x, int y) {
         add(new Point(x, y));
     }
     
-    void prepend(int x, int y) {
+    public void prepend(int x, int y) {
         points.addFirst(new Point(x, y));
     }
     
-    List<Point> points() {
+    public List<Point> points() {
         return new ArrayList<Point>(points);
     }
     
-    void back() {
+    public void back() {
         if (!points.isEmpty()) {
             points.removeLast();
         }
