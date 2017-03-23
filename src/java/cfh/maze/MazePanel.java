@@ -159,12 +159,12 @@ public class MazePanel extends Component {
             if (image != null) {
                 gg.translate(x, y);
                 gg.scale(zoom, zoom);
-                gg.drawImage(image, 0, 0, this);
+//                gg.drawImage(image, 0, 0, this);
                 
                 if (zoom > 2) {
                     gg.setStroke(new BasicStroke(2 / (float) zoom));
                 }
-                for (Path path : paths) {
+                for (Path path : new ArrayList<Path>(paths)) {
                     List<Point> points = path.points();
                     if (!points.isEmpty()) {
                         gg.setColor(path.getColor());
