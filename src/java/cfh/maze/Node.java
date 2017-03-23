@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 public class Node {
     
-    final int x;
-    final int y;
+    public final int x;
+    public final int y;
     
     private Node[] neighbours = new Node[Direction.size()];
     

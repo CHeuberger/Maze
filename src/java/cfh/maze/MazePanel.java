@@ -110,23 +110,23 @@ public class MazePanel extends Component {
         return image;
     }
     
-    void addPath(Path path) {
+    public void addPath(Path path) {
         paths.add(path);
         repaint();
     }
     
-    boolean removePath(Path path) {
+    public boolean removePath(Path path) {
         boolean removed = paths.remove(path);
         repaint();
         return removed;
     }
     
-    void clearPaths() {
+    public void clearPaths() {
         paths.clear();
         repaint();
     }
     
-    void message(String format, Object... args) {
+    public void message(String format, Object... args) {
         JOptionPane.showMessageDialog(this, String.format(format, args));
 
     }
@@ -159,7 +159,7 @@ public class MazePanel extends Component {
             if (image != null) {
                 gg.translate(x, y);
                 gg.scale(zoom, zoom);
-//                gg.drawImage(image, 0, 0, this);
+                gg.drawImage(image, 0, 0, this);
                 
                 if (zoom > 2) {
                     gg.setStroke(new BasicStroke(2 / (float) zoom));

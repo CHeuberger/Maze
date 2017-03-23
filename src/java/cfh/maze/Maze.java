@@ -10,9 +10,9 @@ import java.util.Map;
 
 public class Maze {
     
-    final Map<Node, Node> nodes;
-    final Node entry;
-    final Node exit;
+    public final Map<Node, Node> nodes;
+    public final Node entry;
+    public final Node exit;
     
     
     Maze(Collection<Node> nodes, Node entry, Node exit) {

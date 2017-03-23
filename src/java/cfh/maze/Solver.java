@@ -24,5 +24,5 @@ public abstract class Solver {
         return mazePanel;
     }
     
-    abstract Path solve(Maze maze);
+    protected abstract Path solve(Maze maze);
 }

@@ -33,6 +33,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import cfh.Dot;
+import cfh.maze.solver.BreathFirstSolver;
+import cfh.maze.solver.TurnSolver;
 
 
 public class GUI {
@@ -55,8 +57,6 @@ public class GUI {
     private JFrame frame;
 
     private JMenuBar menuBar;
-    private JMenu fileMenu;
-    private JMenuItem quitMenuItem;
 
     private MazePanel mazePanel;
     private Maze maze = null;
@@ -77,10 +77,10 @@ public class GUI {
         JMenuItem open = new JMenuItem("Open");
         open.addActionListener(this::doOpen);
         
-        quitMenuItem = new JMenuItem("Quit");
+        JMenuItem quitMenuItem = new JMenuItem("Quit");
         quitMenuItem.addActionListener(this::doQuit);
         
-        fileMenu = new JMenu("File");
+        JMenu fileMenu = new JMenu("File");
         fileMenu.add(open);
         fileMenu.addSeparator();
         fileMenu.add(quitMenuItem);
@@ -115,12 +115,7 @@ public class GUI {
     }
     
     private void enable(boolean enabled) {
-        Arrays.stream(fileMenu.getComponents())
-              .filter(comp -> comp != quitMenuItem)
-              .forEach(comp -> comp.setEnabled(enabled));
-        Arrays.stream(menuBar.getComponents())
-              .filter(comp -> comp != fileMenu)
-              .forEach(comp -> comp.setEnabled(enabled));
+        Arrays.stream(menuBar.getComponents()).forEach(comp -> comp.setEnabled(enabled));
     }
 
     private void doOpen(ActionEvent ev) {

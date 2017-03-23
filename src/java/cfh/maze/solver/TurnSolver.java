@@ -1,4 +1,4 @@
-package cfh.maze;
+package cfh.maze.solver;
 
 import static cfh.maze.Direction.*;
 import static java.awt.Color.*;
@@ -6,6 +6,12 @@ import static java.awt.Color.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+
+import cfh.maze.Direction;
+import cfh.maze.Maze;
+import cfh.maze.Node;
+import cfh.maze.Path;
+import cfh.maze.Solver;
 
 
 public class TurnSolver extends Solver {
@@ -15,7 +21,7 @@ public class TurnSolver extends Solver {
     private Function<Direction, Direction> turnStart;
     private Function<Direction, Direction> turnNext;
 
-    TurnSolver(boolean right) {
+    public TurnSolver(boolean right) {
         this(right, true);
     }
     
@@ -28,7 +34,7 @@ public class TurnSolver extends Solver {
     }
 
     @Override
-    Path solve(Maze maze) {
+    protected Path solve(Maze maze) {
         List<Node> solution = new ArrayList<>();
         solution.add(maze.entry);
         Path path = Path.create(YELLOW, maze.entry);

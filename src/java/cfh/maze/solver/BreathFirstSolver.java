@@ -1,4 +1,4 @@
-package cfh.maze;
+package cfh.maze.solver;
 
 import static java.awt.Color.*;
 import static java.util.Objects.*;
@@ -6,17 +6,23 @@ import static java.util.Objects.*;
 import java.awt.Point;
 import java.util.PriorityQueue;
 
+import cfh.maze.Maze;
+import cfh.maze.Node;
+import cfh.maze.Path;
+import cfh.maze.Solver;
+
 
 public class BreathFirstSolver extends Solver {
     
-    BreathFirstSolver() {
+    public BreathFirstSolver() {
         super("Breadth First", "explore neighboors first");
     }
     
     @Override
-    Path solve(Maze maze) {
+    protected Path solve(Maze maze) {
         PriorityQueue<CostNode> open = new PriorityQueue<>();
-        
+        mazePanel().clearPaths();
+ 
         open.add(new CostNode(maze.entry, null, 0));
         
         while (!open.isEmpty()) {
