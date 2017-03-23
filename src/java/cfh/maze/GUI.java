@@ -30,6 +30,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import cfh.Dot;
 
@@ -38,7 +39,8 @@ public class GUI {
     
     private static final List<Solver> SOLVERS = Collections.unmodifiableList(Arrays.asList(
             new TurnSolver(false),
-            new TurnSolver(true)
+            new TurnSolver(true),
+            new BreathFirstSolver()
             ));
 
     public static void main(String[] args) {
@@ -51,11 +53,19 @@ public class GUI {
     private final Preferences prefs = Preferences.userNodeForPackage(getClass());
     
     private JFrame frame;
+
+    private JMenuBar menuBar;
+    private JMenu fileMenu;
+    private JMenuItem quitMenuItem;
+
     private MazePanel mazePanel;
     private Maze maze = null;
     private Path path = null;
 
     private String name = null;
+    
+    private boolean solving = false;
+    
     
     private GUI() {
         SwingUtilities.invokeLater(this::initGUI);
@@ -67,32 +77,32 @@ public class GUI {
         JMenuItem open = new JMenuItem("Open");
         open.addActionListener(this::doOpen);
         
-        JMenuItem quit = new JMenuItem("Quit");
-        quit.addActionListener(this::doQuit);
+        quitMenuItem = new JMenuItem("Quit");
+        quitMenuItem.addActionListener(this::doQuit);
         
-        JMenu file = new JMenu("File");
-        file.add(open);
-        file.addSeparator();
-        file.add(quit);
+        fileMenu = new JMenu("File");
+        fileMenu.add(open);
+        fileMenu.addSeparator();
+        fileMenu.add(quitMenuItem);
         
-        JMenu solve = new JMenu("Solve");
+        JMenu solveMenu = new JMenu("Solve");
         for (Solver solver : SOLVERS) {
             solver.mazePanel(mazePanel);
             JMenuItem item = new JMenuItem(solver.name);
             item.setToolTipText(solver.tooltip);
             item.addActionListener(ev -> doSolve(solver, ev));
-            solve.add(item);
+            solveMenu.add(item);
         }
         
-        JMenuItem tree = new JMenuItem("Tree");
-        tree.addActionListener(this::doTreeGraph);
+        JMenuItem treeMenu = new JMenuItem("Tree");
+        treeMenu.addActionListener(this::doTreeGraph);
         
         JMenu dot = new JMenu("Graphviz");
-        dot.add(tree);
+        dot.add(treeMenu);
         
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.add(file);
-        menuBar.add(solve);
+        menuBar = new JMenuBar();
+        menuBar.add(fileMenu);
+        menuBar.add(solveMenu);
         menuBar.add(dot);
         
         frame = new JFrame();
@@ -103,8 +113,20 @@ public class GUI {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
+    
+    private void enable(boolean enabled) {
+        Arrays.stream(fileMenu.getComponents())
+              .filter(comp -> comp != quitMenuItem)
+              .forEach(comp -> comp.setEnabled(enabled));
+        Arrays.stream(menuBar.getComponents())
+              .filter(comp -> comp != fileMenu)
+              .forEach(comp -> comp.setEnabled(enabled));
+    }
 
     private void doOpen(ActionEvent ev) {
+        if (solving)
+            return;
+        
         String dir = prefs.get(PREF_DIR, ".");
         JFileChooser chooser = new JFileChooser(dir);
         if (chooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION)
@@ -139,25 +161,66 @@ public class GUI {
     }
 
     private void doSolve(Solver solver, ActionEvent ev) {
-        long time = System.nanoTime();
-        path = solver.solve(maze);
-        time = System.nanoTime() - time;
-        if (path != null) {
-            double dist = 0;
-            Point last = null;
-            for (Point point : path.points()) {
-                if (last != null) {
-                    dist += point.distance(last);
+        if (solving)
+            return;
+        
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                long time = System.nanoTime();
+                path = solver.solve(maze);
+                time = System.nanoTime() - time;
+                if (path != null) {
+                    double dist = 0;
+                    Point last = null;
+                    for (Point point : path.points()) {
+                        if (last != null) {
+                            dist += point.distance(last);
+                        }
+                        last = point;
+                    }
+                    mazePanel.message("solved in %.1f ms, distance: %.0f ", time / 1e6, dist);
+                } else {
+                    mazePanel.message("not solved in %.1f ms", time / 1e6);
                 }
-                last = point;
+                return null;
             }
-            mazePanel.message("solved in %.1f ms, distance: %.0f ", time / 1e6, dist);
-        } else {
-            mazePanel.message("not solved in %.1f ms", time / 1e6);
-        }
+            
+            @Override
+            protected void done() {
+                solving = false;
+                enable(true);
+            }
+        };
+        solving = true;
+        enable(false);
+        worker.execute();
+        
+        
+//        Executors.newSingleThreadExecutor().execute(() -> {
+//        long time = System.nanoTime();
+//        path = solver.solve(maze);
+//        time = System.nanoTime() - time;
+//        if (path != null) {
+//            double dist = 0;
+//            Point last = null;
+//            for (Point point : path.points()) {
+//                if (last != null) {
+//                    dist += point.distance(last);
+//                }
+//                last = point;
+//            }
+//            mazePanel.message("solved in %.1f ms, distance: %.0f ", time / 1e6, dist);
+//        } else {
+//            mazePanel.message("not solved in %.1f ms", time / 1e6);
+//        }
+//        });
     }
     
     private void doTreeGraph(ActionEvent ev) {
+        if (solving)
+            return;
+        
         StringBuilder dot = new StringBuilder();
         dot.append("graph {\n");
         dot.append("  ").append(fmtNode(maze.entry)).append(" [ shape=invhouse ];\n");
@@ -212,6 +275,10 @@ public class GUI {
     }
     
     private void doQuit(ActionEvent ev) {
+        if (solving) {
+            solving = false;
+            return;
+        }
         // TODO confirm
         frame.dispose();
     }

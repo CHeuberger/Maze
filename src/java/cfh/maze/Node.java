@@ -1,5 +1,9 @@
 package cfh.maze;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 public class Node {
     
     final int x;
@@ -19,6 +23,10 @@ public class Node {
     
     public Node neighbour(Direction dir) {
         return neighbours[dir.ordinal()];
+    }
+    
+    public Collection<Node> neighbours() {
+        return Arrays.stream(neighbours).filter(n -> n != null).collect(Collectors.toList());
     }
     
     @Override

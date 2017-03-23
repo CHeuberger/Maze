@@ -45,6 +45,10 @@ public class Path {
         add(new Point(x, y));
     }
     
+    void prepend(int x, int y) {
+        points.addFirst(new Point(x, y));
+    }
+    
     List<Point> points() {
         return new ArrayList<Point>(points);
     }
