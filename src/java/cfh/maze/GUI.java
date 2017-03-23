@@ -33,6 +33,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import cfh.Dot;
+import cfh.maze.solver.AStarSolver;
 import cfh.maze.solver.BreathFirstSolver;
 import cfh.maze.solver.DepthFirstSolver;
 import cfh.maze.solver.TurnSolver;
@@ -44,7 +45,8 @@ public class GUI {
             new TurnSolver(false),
             new TurnSolver(true),
             new BreathFirstSolver(),
-            new DepthFirstSolver()
+            new DepthFirstSolver(),
+            new AStarSolver()
             ));
 
     public static void main(String[] args) {
