@@ -5,12 +5,15 @@ import static java.awt.Color.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 
 public class TurnSolver extends Solver {
     
-    private final boolean right;
     private final boolean compress;
+    
+    private Function<Direction, Direction> turnStart;
+    private Function<Direction, Direction> turnNext;
 
     TurnSolver(boolean right) {
         this(right, true);
@@ -18,9 +21,10 @@ public class TurnSolver extends Solver {
     
     TurnSolver(boolean right, boolean compress) {
         super(right ? "Right Turn" : "Left Turn", 
-                "Solves the maze by going through it and always turning " + (right ? "right" : "left"));
-        this.right = right;
+                "Solves the maze by always turning " + (right ? "right" : "left"));
         this.compress = compress;
+        turnStart = right ? Direction::right : Direction::left;
+        turnNext = right ? Direction::left : Direction::right;
     }
 
     @Override
@@ -34,27 +38,27 @@ public class TurnSolver extends Solver {
         Node current = maze.entry.neighbour(dir);
         solution.add(current);
         path.add(current.x, current.y);
+        
+        search:
         while (!current.equals(maze.exit) && !current.equals(maze.exit)) {
-            if (current.neighbour(right ? dir.right() : dir.left()) != null) {
-                dir = right ? dir.right() : dir.left();
-            } else if (current.neighbour(dir) != null) {
-                // go straight
-            } else if (current.neighbour(right ? dir.left() : dir.right()) != null) {
-                dir = right ? dir.left() : dir.right();
-            } else if (current.neighbour(dir.back()) != null) {
-                dir = dir.back();
-            } else {
-                assert false : "stuck at " + current + " going " + dir;
-                break;
+            Direction test = turnStart.apply(dir);
+            for (int i = 0; i < 4; i++) {
+                if (current.neighbour(test) != null) {
+                    dir = test;
+                    current = current.neighbour(dir);
+                    int index = solution.indexOf(current);
+                    if (compress && index != -1) {
+                        solution.subList(index+1, solution.size()).clear();
+                    } else {
+                        solution.add(current);
+                    }
+                    path.add(current.x, current.y);
+                    continue search;
+                }
+                test = turnNext.apply(test);
             }
-            current = current.neighbour(dir);
-            int index = solution.indexOf(current);
-            if (compress && index != -1) {
-                solution.subList(index+1, solution.size()).clear();
-            } else {
-                solution.add(current);
-            }
-            path.add(current.x, current.y);
+            assert false : "stuck at " + current + " going " + dir;
+            break;
         }
         
         path = Path.create(BLUE, solution.toArray(new Node[solution.size()]));
