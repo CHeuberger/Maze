@@ -34,6 +34,7 @@ import javax.swing.SwingWorker;
 
 import cfh.Dot;
 import cfh.maze.solver.BreathFirstSolver;
+import cfh.maze.solver.DepthFirstSolver;
 import cfh.maze.solver.TurnSolver;
 
 
@@ -42,7 +43,8 @@ public class GUI {
     private static final List<Solver> SOLVERS = Collections.unmodifiableList(Arrays.asList(
             new TurnSolver(false),
             new TurnSolver(true),
-            new BreathFirstSolver()
+            new BreathFirstSolver(),
+            new DepthFirstSolver()
             ));
 
     public static void main(String[] args) {
